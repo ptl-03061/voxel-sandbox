@@ -7,15 +7,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: "17" }
-      - uses: android-actions/setup-android@v3
-      - name: NDK + CMake + build tools
-        run: sdkmanager "ndk;26.1.10909125" "cmake;3.22.1" "build-tools;34.0.0" "platforms;android-34"
+
+      - name: Install NDK + build tools
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;26.1.10909125" "cmake;3.22.1" "build-tools;34.0.0" "platforms;android-34"
+
       - name: Unzip and build
         run: |
           unzip src.zip
           cd VoxelSandbox/android
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
           if [ -x ./gradlew ]; then ./gradlew :app:assembleDebug; else gradle :app:assembleDebug; fi
+
       - uses: actions/upload-artifact@v4
         with:
           name: VoxelSandbox-upgraded-debug
